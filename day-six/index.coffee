@@ -3,6 +3,7 @@ log = (args...) -> console.log(args...)
 
 
 entry = fs.readFileSync(__dirname + '/input.txt').toString().split('\n')
+entry.pop()
 
 countLightsOn = ->
   count = 0
@@ -11,14 +12,25 @@ countLightsOn = ->
       if y.state then count++
   return count
 
+countLightsBrightness = ->
+  count = 0
+  for x in lights
+    for y in x
+      count += y.brightness
+  return count
+
 class Light
-  constructor: (@state = off) ->
+  constructor: (@state, @brightness) ->
 
   turn: (state) ->
     @state = state
+    if state then @brightness++
+    else
+      if @brightness != 0 then @brightness--
 
   toggle: ->
     @state = !@state
+    @brightness += 2
 
 lights = new Array(1000)
 
@@ -26,15 +38,13 @@ createGrid = ->
   for x in [0..999]
     lights[x] = new Array(1000)
     for y in [0..999]
-      lights[x][y] = new Light()
+      lights[x][y] = new Light(off, 0)
 
 parse = (s) ->
   s.split(' ')
 
 turns = (state, s, e) ->
-  log state, s, e
   for x in [s.x..e.x]
-    log x
     for y in [s.y..e.y]
       lights[x][y].turn(state)
 
@@ -45,7 +55,7 @@ toggles = (s, e) ->
 
 posFromString = (s) ->
   parsed = s.split(',')
-  return {x: parsed[0], y: parsed[1]}
+  return {x: parsed[0] - 1, y: parsed[1] - 1}
 
 createGrid()
 entry.forEach (i) ->
@@ -58,4 +68,4 @@ entry.forEach (i) ->
     when 'toggle'
       toggles posFromString(parsed[1]), posFromString(parsed[3])
 
-log countLightsOn()
+log countLightsBrightness()
